@@ -9,3 +9,18 @@ return {
     },
   },
 }
+
+--[[
+To use diffview merge tool, updates ~/.gitconfig to use neovim as mergetool
+Add:
+```
+[merge]
+    tool = diffview
+[mergetool "diffview"]
+    cmd = nvim -n -c "DiffviewOpen" "$MERGED"
+    prompt = false
+    keepBackup = false
+```
+
+To git config.
+--]]

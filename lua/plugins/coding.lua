@@ -85,7 +85,12 @@ return {
       opts.servers.ruff = {
         init_options = {
           settings = {
-            lint = { select = { "F", "I" } },
+            lineLength = 120,
+            lint = {
+              select = { "F", "I" },
+              isort = { forceSingleLine = true },
+            },
+            format = { lineLength = 120 },
           },
         },
         on_attach = function(client, bufnr)

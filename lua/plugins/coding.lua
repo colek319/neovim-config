@@ -75,14 +75,48 @@ return {
               typeCheckingMode = "basic",
               diagnosticMode = "workspace",
               autoSearchPaths = true,
+              autoImportCompletions = true,
             },
           },
         },
+      }
+
+      -- Ruff for fast import fixing and linting code actions
+      opts.servers.ruff = {
+        init_options = {
+          settings = {
+            lint = { select = { "F", "I" } },
+          },
+        },
+        on_attach = function(client, bufnr)
+          -- Disable hover in favour of pyright
+          client.server_capabilities.hoverProvider = false
+          -- Organise imports on save
+          vim.api.nvim_create_autocmd("BufWritePre", {
+            buffer = bufnr,
+            callback = function()
+              vim.lsp.buf.code_action({
+                context = { only = { "source.organizeImports" }, diagnostics = {} },
+                apply = true,
+              })
+            end,
+          })
+        end,
       }
     end,
     keys = {
       { "<leader>pi", "<cmd>LspInfo<cr>", desc = "Python LSP Info" },
       { "<leader>pr", "<cmd>LspRestart pyright<cr>", desc = "Restart Pyright" },
+      {
+        "<leader>pI",
+        function()
+          vim.lsp.buf.code_action({
+            context = { only = { "source.organizeImports" }, diagnostics = {} },
+            apply = true,
+          })
+        end,
+        desc = "Organise Imports",
+      },
     },
   },
 
@@ -94,6 +128,7 @@ return {
       vim.list_extend(opts.ensure_installed, {
         "pyright",
         "debugpy",
+        "ruff",
       })
     end,
   },
@@ -130,7 +165,12 @@ return {
     },
     opts = {
       adapters = {
-        ["neotest-python"] = { runner = "pytest" },
+        ["neotest-python"] = {
+          runner = "pytest",
+          python = function()
+            return python_util.get_python_path()
+          end,
+        },
       },
     },
     config = function(_, opts)
